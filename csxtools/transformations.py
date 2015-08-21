@@ -25,10 +25,10 @@ import time
 import numpy as np
 import numpy.ma as ma
 
-try:
-    import ctrans
-except:
-    import ctrans2 as ctrans
+# try:
+#     import ctrans
+# except:
+#     import ctrans2 as ctrans
     
 from skxray.core.recip import process_to_q
 from skxray.core.utils import grid3d
