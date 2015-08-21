@@ -29,7 +29,8 @@ try:
     import ctrans
 except:
     import ctrans2 as ctrans
-
+    
+from skxray.core import recip
 
 gc.enable()
 
@@ -519,15 +520,24 @@ class ImageProcessor():
         print("---- CCD Size :", (self.detSizeX, self.detSizeY))
         print("**** Converting to Q")
         t1 = time.time()
-        self.totSet = ctrans.ccdToQ(angles      = self.settingAngles * np.pi / 180.0,
-                                    mode        = self.frameMode,
-                                    ccd_size    = (self.detSizeX, self.detSizeY),
-                                    ccd_pixsize = (self.detPixSizeX, self.detPixSizeY),
-                                    ccd_cen     = (self.detX0, self.detY0),
-                                    dist        = self.detDis,
-                                    wavelength  = self.waveLen,
-                                    UBinv       = np.matrix(self.UBmat).I,
-                                    **ccdToQkwArgs)
+        recip.process_to_q(self.settingAngles * np.pi / 180.0,
+                           detector_size=(self.detSizeX, self.detSizeY),
+                           pixel_size=(self.detPixSizeX, self.detPixSizeY),
+                           calibrated_center = (self.detX0, self.detY0),
+                           dist_sample=self.detDis,
+                           wavelength=self.waveLen,
+                           UBinv=np.matrix(self.UBmat).I,
+                           frame_mode=self.frameMode)
+        
+        # self.totSet = ctrans.ccdToQ(angles      = self.settingAngles * np.pi / 180.0,
+        #                             mode        = self.frameMode,
+        #                             ccd_size    = (self.detSizeX, self.detSizeY),
+        #                             ccd_pixsize = (self.detPixSizeX, self.detPixSizeY),
+        #                             ccd_cen     = (self.detX0, self.detY0),
+        #                             dist        = self.detDis,
+        #                             wavelength  = self.waveLen,
+        #                             UBinv       = np.matrix(self.UBmat).I,
+        #                             **ccdToQkwArgs)
         t2 = time.time()
         print("---- DONE (Processed in %f seconds)" % (t2 - t1))
         print("---- Setsize is %d" % self.totSet.shape[0])
