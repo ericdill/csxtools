@@ -30,7 +30,8 @@ try:
 except:
     import ctrans2 as ctrans
     
-from skxray.core import recip
+from skxray.core.recip import process_to_q
+from skxray.core.utils import grid3d
 
 gc.enable()
 
@@ -520,15 +521,15 @@ class ImageProcessor():
         print("---- CCD Size :", (self.detSizeX, self.detSizeY))
         print("**** Converting to Q")
         t1 = time.time()
-        recip.process_to_q(self.settingAngles * np.pi / 180.0,
-                           detector_size=(self.detSizeX, self.detSizeY),
-                           pixel_size=(self.detPixSizeX, self.detPixSizeY),
-                           calibrated_center = (self.detX0, self.detY0),
-                           dist_sample=self.detDis,
-                           wavelength=self.waveLen,
-                           UBinv=np.matrix(self.UBmat).I,
-                           frame_mode=self.frameMode)
-        
+        process_to_q(self.settingAngles * np.pi / 180.0,
+                     detector_size=(self.detSizeX, self.detSizeY),
+                     pixel_size=(self.detPixSizeX, self.detPixSizeY),
+                     calibrated_center = (self.detX0, self.detY0),
+                     dist_sample=self.detDis,
+                     wavelength=self.waveLen,
+                     UBinv=np.matrix(self.UBmat).I,
+                     frame_mode=self.frameMode)
+
         # self.totSet = ctrans.ccdToQ(angles      = self.settingAngles * np.pi / 180.0,
         #                             mode        = self.frameMode,
         #                             ccd_size    = (self.detSizeX, self.detSizeY),
@@ -579,7 +580,21 @@ class ImageProcessor():
         # 3D grid of the data set
         print("**** Gridding Data.")
         t1 = time.time()
-        gridData, gridOccu, gridStdErr, gridOut = ctrans.grid3d(self.totSet, self.Qmin, self.Qmax, self.dQN, norm = 1)
+        grid3d
+        # gridData, gridOccu, gridStdErr, gridOut = ctrans.grid3d(self.totSet, self.Qmin, self.Qmax, self.dQN, norm = 1)
+        (gridData, gridOccu,
+         gridStdErr, gridOut, gridBounds) = grid3d(self.totSet[:3],
+                                                   self.totSet[4],
+                                                   xmin = self.Qmin[0],
+                                                   ymin = self.Qmin[1],
+                                                   zmin = self.Qmin[2],
+                                                   xmax = self.Qmax[0],
+                                                   ymax = self.Qmax[1],
+                                                   zmax = self.Qmax[2],
+                                                   nx=self.dQN[0],
+                                                   ny=self.dQN[1],
+                                                   nz=self.dQN[2],
+                                                   norm=1)
         t2 = time.time()
         print("---- DONE (Processed in %f seconds)" % (t2 - t1))
         emptNb = (gridOccu == 0).sum()
